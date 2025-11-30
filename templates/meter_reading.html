@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meter Reading - EB Power</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        .dashboard-header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--primary);
+            color: white;
+            min-height: calc(100vh - 80px);
+            transition: all 0.3s;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            width: 250px;
+            z-index: 1010;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            text-align: center;
+            padding: 15px 5px;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            display: block;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 30px;
+            transition: all 0.3s;
+            margin-left: 250px;
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-animated {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .calculation-result {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .calculation-result.show {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Footer Styles */
+        .dashboard-footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-top: 30px;
+        }
+
+        /* Loading spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1005;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                width: 70px;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Notification Container -->
+    <div class="toast-container"></div>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Section 1: Header -->
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <button class="sidebar-toggle d-lg-none me-3" id="mobileSidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h4 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>EB Power - Meter Reading</h4>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="user-info justify-content-end">
+                        <div class="user-avatar">{{ employee.initials }}</div>
+                        <div>
+                            <div class="fw-bold">{{ employee.first_name }} {{ employee.last_name }}</div>
+                            <div class="small text-muted">Field Technician</div>
+                        </div>
+                        <div class="dropdown ms-3">
+                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/logout"><i
+                                            class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Section 2: Sidebar Menu -->
+            <div class="col-lg-2 sidebar" id="sidebar">
+                <div class="d-none d-lg-block text-end p-3">
+                    <button class="sidebar-toggle" id="desktopSidebarToggle">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'employee_dashboard' %}">
+                            <i class="fas fa-home"></i> <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        {% if customer and bill %}
+                        <a class="nav-link" href="{% url 'bill' customer.id bill.id %}">
+                            <i class="fas fa-file-invoice"></i> <span>View Bills</span>
+                        </a>
+                        {% else %}
+                        <a class="nav-link disabled" href="#">
+                            <i class="fas fa-file-invoice"></i> <span>No bill yet</span>
+                        </a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-calculator"></i> <span>EB Calculator</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <i class="fas fa-tachometer-alt"></i> <span>Meter Reading</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-user"></i> <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+
+            <!-- Section 3: Main Content -->
+            <div class="col-lg-10 main-content" id="mainContent">
+                <!-- Flash Messages Block -->
+                <div id="messages" class="messages mb-4">
+                    {% if messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <div>{{ message }}</div>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-container form-animated">
+                    <h2 class="form-title">Enter Meter Reading</h2>
+
+                    <form id="meterReadingForm" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ebServiceNumber" class="form-label">EB Service Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                                    <input type="text" class="form-control" id="ebServiceNumber"
+                                        name="eb_service_number" placeholder="Enter EB service number" required>
+                                </div>
+                                <div class="invalid-feedback" id="ebServiceNumberFeedback">
+                                    Please provide a valid EB service number.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="customer" class="form-label">Customer</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="customer" name="customer"
+                                        placeholder="Customer name" required>
+                                </div>
+                                <div class="invalid-feedback" id="customerFeedback">
+                                    Please provide a customer name.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="billingDate" class="form-label">Billing Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    <input type="date" class="form-control" id="billingDate" name="billing_date"
+                                        required>
+                                </div>
+                                <div class="invalid-feedback" id="billingDateFeedback">
+                                    Please select a valid billing date.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tariffCategory" class="form-label">Tariff Category</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-bolt"></i></span>
+                                    <select class="form-select" id="tariffCategory" name="tariff_category" required>
+                                        <option value="">Select category</option>
+                                        <option value="domestic">Domestic</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="industrial">Industrial</option>
+                                    </select>
+                                </div>
+                                <div class="invalid-feedback" id="tariffCategoryFeedback">
+                                    Please select a tariff category.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startingUnit" class="form-label">Starting Unit (kWh)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tachometer-alt"></i></span>
+                                    <input type="number" class="form-control" id="startingUnit" name="starting_unit"
+                                        placeholder="Previous reading" required min="0" step="0.01">
+                                </div>
+                                <div class="invalid-feedback" id="startingUnitFeedback">
+                                    Please provide a valid starting unit.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endingUnit" class="form-label">Ending Unit (kWh)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tachometer-alt"></i></span>
+                                    <input type="number" class="form-control" id="endingUnit" name="ending_unit"
+                                        placeholder="Current reading" required min="0" step="0.01">
+                                </div>
+                                <div class="invalid-feedback" id="endingUnitFeedback">
+                                    Please provide a valid ending unit.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="calculation-result" id="calculationResult">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1">Total Units Consumed</p>
+                                    <div class="result-value" id="totalUnits">0 kWh</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1">Estimated Amount</p>
+                                    <div class="result-value" id="estimatedAmount">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="generateBill">
+                                <span id="submitText"><i class="fas fa-file-invoice me-1"></i> Generate Bill</span>
+                                <div id="submitSpinner" class="spinner-border spinner-border-sm ms-2 d-none"
+                                    role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Footer -->
+    <footer class="dashboard-footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 Electricity Board. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Employee Support: 9498794987</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            const desktopSidebarToggle = document.getElementById('desktopSidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            // Toggle sidebar for desktop
+            desktopSidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+
+                // Update toggle icon
+                if (sidebar.classList.contains('collapsed')) {
+                    desktopSidebarToggle.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                } else {
+                    desktopSidebarToggle.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                }
+            });
+
+            // Toggle sidebar for mobile
+            mobileSidebarToggle.addEventListener('click', function () {
+                sidebar.classList.add('show');
+                sidebarOverlay.classList.add('show');
+            });
+
+            // Close sidebar when clicking on overlay (mobile)
+            sidebarOverlay.addEventListener('click', function () {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+
+            // Close sidebar when clicking a link (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                    }
+                });
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
+
+            // Form elements
+            const form = document.getElementById('meterReadingForm');
+            const submitButton = document.getElementById('generateBill');
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+
+            // Form validation state
+            let isFormValid = false;
+
+            // Meter reading calculation
+            const startingUnit = document.getElementById('startingUnit');
+            const endingUnit = document.getElementById('endingUnit');
+            const tariffCategory = document.getElementById('tariffCategory');
+            const calculationResult = document.getElementById('calculationResult');
+            const totalUnits = document.getElementById('totalUnits');
+            const estimatedAmount = document.getElementById('estimatedAmount');
+
+            // Real-time validation for form fields
+            const formFields = form.querySelectorAll('input, select');
+            formFields.forEach(field => {
+                field.addEventListener('blur', function () {
+                    validateField(this);
+                    validateForm();
+                });
+
+                field.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        validateField(this);
+                    }
+                    validateForm();
+                });
+            });
+
+            // Field validation function
+            function validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let feedback = '';
+
+                switch (field.id) {
+                    case 'ebServiceNumber':
+                        if (value.length < 3 || value.length > 20) {
+                            isValid = false;
+                            feedback = 'EB Service Number must be between 3 and 20 characters.';
+                        }
+                        break;
+                    case 'customer':
+                        if (value.length < 2 || value.length > 50) {
+                            isValid = false;
+                            feedback = 'Customer name must be between 2 and 50 characters.';
+                        }
+                        break;
+                    case 'billingDate':
+                        const selectedDate = new Date(value);
+                        const today = new Date();
+                        if (selectedDate > today) {
+                            isValid = false;
+                            feedback = 'Billing date cannot be in the future.';
+                        }
+                        break;
+                    case 'tariffCategory':
+                        if (value === '') {
+                            isValid = false;
+                            feedback = 'Please select a tariff category.';
+                        }
+                        break;
+                    case 'startingUnit':
+                        if (value < 0) {
+                            isValid = false;
+                            feedback = 'Starting unit cannot be negative.';
+                        }
+                        break;
+                    case 'endingUnit':
+                        const startValue = parseFloat(startingUnit.value) || 0;
+                        if (value < startValue) {
+                            isValid = false;
+                            feedback = 'Ending unit must be greater than or equal to starting unit.';
+                        } else if (value < 0) {
+                            isValid = false;
+                            feedback = 'Ending unit cannot be negative.';
+                        }
+                        break;
+                }
+
+                if (isValid) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.remove('is-valid');
+                    field.classList.add('is-invalid');
+                    const feedbackElement = document.getElementById(field.id + 'Feedback');
+                    if (feedbackElement) {
+                        feedbackElement.textContent = feedback;
+                    }
+                }
+
+                return isValid;
+            }
+
+            // Form validation function
+            function validateForm() {
+                let valid = true;
+
+                // Check all required fields
+                formFields.forEach(field => {
+                    if (field.hasAttribute('required')) {
+                        if (field.value.trim() === '') {
+                            valid = false;
+                        } else if (field.classList.contains('is-invalid')) {
+                            valid = false;
+                        }
+                    }
+                });
+
+                // Special validation for units
+                const start = parseFloat(startingUnit.value) || 0;
+                const end = parseFloat(endingUnit.value) || 0;
+                if (end < start) {
+                    valid = false;
+                }
+
+                isFormValid = valid;
+                submitButton.disabled = !isFormValid;
+
+                return valid;
+            }
+
+            // Calculate units and amount when inputs change
+            function calculateBill() {
+                const start = parseFloat(startingUnit.value) || 0;
+                const end = parseFloat(endingUnit.value) || 0;
+                const category = tariffCategory.value;
+
+                if (end >= start && category) {
+                    const units = end - start;
+                    totalUnits.textContent = units.toFixed(2) + ' kWh';
+
+                    // Calculate amount based on tariff category
+                    let rate = 0;
+                    switch (category) {
+                        case 'domestic':
+                            if (units <= 100) {
+                                rate = 0; // $0.10 per kWh for first 100 kWh
+                            } else if (units <= 200) {
+                                rate = 5.00; // $0.12 per kWh for next 200 kWh
+                            } else if (units <= 400) {
+                                rate = 10.00; // $0.15 per kWh for above 300 kWh
+                            } 
+                            else if (units <= 1000){
+                                rate = 20.00; // $0.20 per kWh for above 400 kWh
+                            }
+                            else{
+                                rate = 30.00; 
+                            }
+                            break;
+                        case 'commercial':
+                            if (units <= 100) {
+                                rate = 10; // $0.10 per kWh for first 100 kWh
+                            } else if (units <= 200) {
+                                rate = 15.00; // $0.12 per kWh for next 200 kWh
+                            } else if (units <= 400) {
+                                rate = 20.00; // $0.15 per kWh for above 300 kWh
+                            } 
+                            else if (units <= 1000){
+                                rate = 25.00; // $0.20 per kWh for above 400 kWh
+                            }
+                            else{
+                                rate = 30.00; 
+                            }                            break;
+                        case 'industrial':
+                            if (units <= 100) {
+                                rate = 10; // $0.10 per kWh for first 100 kWh
+                            } else if (units <= 200) {
+                                rate = 20.00; // $0.12 per kWh for next 200 kWh
+                            } else if (units <= 400) {
+                                rate = 30.00; // $0.15 per kWh for above 300 kWh
+                            } 
+                            else if (units <= 1000){
+                                rate = 40.00; // $0.20 per kWh for above 400 kWh
+                            }
+                            else{
+                                rate = 50.00; 
+                            }                            break;
+                        default:
+                            rate = 0;
+                            break; 
+                    }
+
+                    const amount = units * rate;
+                    estimatedAmount.textContent = '₹' + amount.toFixed(2);
+
+                    calculationResult.classList.add('show');
+                } else {
+                    calculationResult.classList.remove('show');
+                }
+            }
+
+            startingUnit.addEventListener('change', calculateBill);
+            startingUnit.addEventListener('input', calculateBill);
+            endingUnit.addEventListener('change', calculateBill);
+            endingUnit.addEventListener('input', calculateBill);
+            tariffCategory.addEventListener('change', calculateBill);
+
+            // Form submission handler
+            form.addEventListener('submit', function (e) {
+                // First validate the form
+                if (!validateForm()) {
+                    //e.preventDefault(); 
+                    showToast('Please fix the errors in the form before submitting.', 'error');
+                    return;
+                }
+
+                // If form is valid, show loading state but allow normal form submission
+                submitText.innerHTML = 'Generating Bill...';
+                submitSpinner.classList.remove('d-none');
+                submitButton.disabled = true;
+
+                // The form will now submit normally to the Django backend
+                // No need to prevent default or use AJAX
+            });
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+
+                const bgClass = {
+                    'success': 'bg-success',
+                    'error': 'bg-danger',
+                    'warning': 'bg-warning',
+                    'info': 'bg-info'
+                }[type] || 'bg-info';
+
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `;
+
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 5000
+                });
+
+                toast.show();
+
+                // Remove toast from DOM after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', function () {
+                    toastElement.remove();
+                });
+            }
+
+            // Initialize form validation
+            validateForm();
+        });
+    </script>
+</body>
+
+</html>

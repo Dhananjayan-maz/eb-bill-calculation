@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Signup - EB Power</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .min-vh-100 {
+            min-height: 100vh;
+        }
+
+        .signup-form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .password-strength {
+            height: 5px;
+            margin-top: 5px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .password-weak {
+            background-color: #e74c3c;
+            width: 25%;
+        }
+
+        .password-medium {
+            background-color: #f39c12;
+            width: 50%;
+        }
+
+        .password-strong {
+            background-color: #2ecc71;
+            width: 100%;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s, transform 0.6s;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .image-container {
+            background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://source.unsplash.com/800x1000/?office,work') center/cover;
+            border-radius: 15px 0 0 15px;
+        }
+
+        @media (max-width: 992px) {
+            .image-container {
+                border-radius: 15px 15px 0 0;
+                height: 300px;
+            }
+        }
+
+        .form-check-input:checked {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        /* Loading spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Notification Container -->
+    <div class="toast-container"></div>
+
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Column: Image -->
+            <div class="col-lg-6 image-container d-flex align-items-center justify-content-center text-white p-5">
+                <div class="text-center animate-on-scroll">
+                    <h1 class="display-4 fw-bold mb-4">Join Our Team</h1>
+                    <p class="lead mb-4">Register as an employee to access the internal management system</p>
+                    <div class="mt-5">
+                        <div class="row text-start">
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> Customer Management
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> Billing System
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> Meter Reading
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> Report Generation
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> System Monitoring
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <i class="fas fa-check-circle me-2 text-success"></i> Technical Support
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Signup Form -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center p-5">
+                <div class="w-100" style="max-width: 500px;">
+                    <div class="text-center mb-4 animate-on-scroll">
+                        <h2 class="fw-bold">Employee Registration</h2>
+                        <p class="text-muted">Create your employee account</p>
+                    </div>
+
+                    <!-- Flash Messages Block -->
+                    <div id="messages" class="messages mb-4">
+                        {% if messages %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                            <div>{{ message }}</div>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <form class="animate-on-scroll signup-form-container" id="employeeSignupForm" method="post"
+                        action="{% url 'employee_signup' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employeeId" class="form-label">Employee ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                    <input type="text" class="form-control" id="employeeId" name="employee_id"
+                                        placeholder="Enter employee ID" required>
+                                </div>
+                                <div class="invalid-feedback" id="employeeIdFeedback">
+                                    Please provide a valid employee ID.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="joinDate" class="form-label">Join Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    <input type="date" class="form-control" id="joinDate" name="join_date" required>
+                                </div>
+                                <div class="invalid-feedback" id="joinDateFeedback">
+                                    Please select a valid join date.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="firstName" name="first_name"
+                                        placeholder="First name" required>
+                                </div>
+                                <div class="invalid-feedback" id="firstNameFeedback">
+                                    Please provide your first name.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="lastName" name="last_name"
+                                        placeholder="Last name" required>
+                                </div>
+                                <div class="invalid-feedback" id="lastNameFeedback">
+                                    Please provide your last name.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contactNumber" class="form-label">Contact Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="contactNumber" name="contact_number"
+                                        placeholder="Contact number" required>
+                                </div>
+                                <div class="invalid-feedback" id="contactNumberFeedback">
+                                    Please provide a valid contact number.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                        placeholder="Email address" required>
+                                </div>
+                                <div class="invalid-feedback" id="emailFeedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-home"></i></span>
+                                <textarea class="form-control" id="address" name="address" rows="2"
+                                    placeholder="Enter your address" required></textarea>
+                            </div>
+                            <div class="invalid-feedback" id="addressFeedback">
+                                Please provide your complete address.
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="region" class="form-label">Region</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <select class="form-select" id="region" name="region" required>
+                                        <option value="">Select region</option>
+                                        <option value="north">North Region</option>
+                                        <option value="south">South Region</option>
+                                        <option value="east">East Region</option>
+                                        <option value="west">West Region</option>
+                                        <option value="central">Central Region</option>
+                                    </select>
+                                </div>
+                                <div class="invalid-feedback" id="regionFeedback">
+                                    Please select a region.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Employee Status</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active"
+                                        checked>
+                                    <label class="form-check-label" for="isActive">
+                                        Active Account
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Create password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <div class="form-text" id="passwordFeedback"></div>
+                            <div class="invalid-feedback" id="passwordInvalidFeedback">
+                                Password must be at least 8 characters with uppercase, lowercase, number and special
+                                character.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirm_password"
+                                    placeholder="Confirm password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text" id="confirmPasswordFeedback"></div>
+                            <div class="invalid-feedback" id="confirmPasswordInvalidFeedback">
+                                Passwords do not match.
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitButton">
+                                <span id="submitText">Register Employee</span>
+                                <div id="submitSpinner" class="spinner-border spinner-border-sm ms-2 d-none"
+                                    role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="mb-0">Already have an account? <a href="{% url 'employee_login' %}"
+                                    class="text-decoration-none fw-bold">Sign In</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Form elements
+            const form = document.getElementById('employeeSignupForm');
+            const submitButton = document.getElementById('submitButton');
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+
+            // Password visibility toggles
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+
+            // Form validation state
+            let isFormValid = false;
+
+            togglePassword.addEventListener('click', function () {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+
+            toggleConfirmPassword.addEventListener('click', function () {
+                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPassword.setAttribute('type', type);
+                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+
+            // Password strength checker
+            password.addEventListener('input', function () {
+                const strengthBar = document.getElementById('passwordStrength');
+                const feedback = document.getElementById('passwordFeedback');
+                const value = password.value;
+
+                // Reset
+                strengthBar.className = 'password-strength';
+                feedback.textContent = '';
+                password.classList.remove('is-invalid');
+
+                if (value.length > 0) {
+                    let strength = 0;
+                    let feedbackText = '';
+
+                    // Check password length
+                    if (value.length >= 8) strength += 1;
+                    else feedbackText = 'Password should be at least 8 characters. ';
+
+                    // Check for lowercase letters
+                    if (/[a-z]/.test(value)) strength += 1;
+                    else feedbackText += 'Include lowercase letters. ';
+
+                    // Check for uppercase letters
+                    if (/[A-Z]/.test(value)) strength += 1;
+                    else feedbackText += 'Include uppercase letters. ';
+
+                    // Check for numbers
+                    if (/[0-9]/.test(value)) strength += 1;
+                    else feedbackText += 'Include numbers. ';
+
+                    // Check for special characters
+                    if (/[^A-Za-z0-9]/.test(value)) strength += 1;
+                    else feedbackText += 'Include special characters. ';
+
+                    // Update strength bar
+                    if (strength <= 2) {
+                        strengthBar.classList.add('password-weak');
+                        feedbackText = 'Weak password. ' + feedbackText;
+                        password.classList.add('is-invalid');
+                    } else if (strength <= 4) {
+                        strengthBar.classList.add('password-medium');
+                        feedbackText = 'Medium strength password. ' + feedbackText;
+                        password.classList.remove('is-invalid');
+                    } else {
+                        strengthBar.classList.add('password-strong');
+                        feedbackText = 'Strong password!';
+                        password.classList.remove('is-invalid');
+                    }
+
+                    feedback.textContent = feedbackText;
+                }
+
+                validateForm();
+            });
+
+            // Confirm password match checker
+            confirmPassword.addEventListener('input', function () {
+                const feedback = document.getElementById('confirmPasswordFeedback');
+
+                if (password.value !== confirmPassword.value) {
+                    feedback.textContent = 'Passwords do not match!';
+                    feedback.style.color = '#e74c3c';
+                    confirmPassword.classList.add('is-invalid');
+                } else {
+                    feedback.textContent = 'Passwords match!';
+                    feedback.style.color = '#2ecc71';
+                    confirmPassword.classList.remove('is-invalid');
+                }
+
+                validateForm();
+            });
+
+            // Real-time validation for other fields
+            const formFields = form.querySelectorAll('input, select, textarea');
+            formFields.forEach(field => {
+                field.addEventListener('blur', function () {
+                    validateField(this);
+                    validateForm();
+                });
+
+                field.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        validateField(this);
+                    }
+                    validateForm();
+                });
+            });
+
+            // Field validation function
+            function validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let feedback = '';
+
+                switch (field.id) {
+                    case 'employeeId':
+                        if (value.length < 3 || value.length > 20) {
+                            isValid = false;
+                            feedback = 'Employee ID must be between 3 and 20 characters.';
+                        }
+                        break;
+                    case 'firstName':
+                        if (value.length < 2 || value.length > 30) {
+                            isValid = false;
+                            feedback = 'First name must be between 2 and 30 characters.';
+                        } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+                            isValid = false;
+                            feedback = 'First name can only contain letters and spaces.';
+                        }
+                        break;
+                    case 'lastName':
+                        if (value.length < 2 || value.length > 30) {
+                            isValid = false;
+                            feedback = 'Last name must be between 2 and 30 characters.';
+                        } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+                            isValid = false;
+                            feedback = 'Last name can only contain letters and spaces.';
+                        }
+                        break;
+                    case 'contactNumber':
+                        if (!/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\s/g, ''))) {
+                            isValid = false;
+                            feedback = 'Please provide a valid contact number.';
+                        }
+                        break;
+                    case 'email':
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                            isValid = false;
+                            feedback = 'Please provide a valid email address.';
+                        }
+                        break;
+                    case 'address':
+                        if (value.length < 10) {
+                            isValid = false;
+                            feedback = 'Please provide a complete address (at least 10 characters).';
+                        }
+                        break;
+                    case 'joinDate':
+                        const selectedDate = new Date(value);
+                        const today = new Date();
+                        if (selectedDate > today) {
+                            isValid = false;
+                            feedback = 'Join date cannot be in the future.';
+                        }
+                        break;
+                    case 'region':
+                        if (value === '') {
+                            isValid = false;
+                            feedback = 'Please select a region.';
+                        }
+                        break;
+                }
+
+                if (isValid) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.remove('is-valid');
+                    field.classList.add('is-invalid');
+                    const feedbackElement = document.getElementById(field.id + 'Feedback');
+                    if (feedbackElement) {
+                        feedbackElement.textContent = feedback;
+                    }
+                }
+
+                return isValid;
+            }
+
+            // Form validation function
+            function validateForm() {
+                let valid = true;
+
+                // Check all required fields
+                formFields.forEach(field => {
+                    if (field.hasAttribute('required') && field.type !== 'checkbox') {
+                        if (field.value.trim() === '') {
+                            valid = false;
+                        } else if (field.classList.contains('is-invalid')) {
+                            valid = false;
+                        }
+                    }
+                });
+
+                // Special validation for passwords
+                if (password.value !== confirmPassword.value) {
+                    valid = false;
+                }
+
+                if (password.value.length > 0) {
+                    const strength = calculatePasswordStrength(password.value);
+                    if (strength < 3) { // Require at least medium strength
+                        valid = false;
+                    }
+                }
+
+                isFormValid = valid;
+                submitButton.disabled = !isFormValid;
+
+                return valid;
+            }
+
+            // Calculate password strength (0-5)
+            function calculatePasswordStrength(password) {
+                let strength = 0;
+
+                if (password.length >= 8) strength += 1;
+                if (/[a-z]/.test(password)) strength += 1;
+                if (/[A-Z]/.test(password)) strength += 1;
+                if (/[0-9]/.test(password)) strength += 1;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+
+                return strength;
+            }
+
+            // Form submission handler
+            form.addEventListener('submit', function (e) {
+                // First validate the form
+                if (!validateForm()) {
+                    //e.preventDefault();
+                    showToast('Please fix the errors in the form before submitting.', 'error');
+                    return;
+                }
+
+                // If form is valid, show loading state but allow normal form submission
+                submitText.textContent = 'Registering Employee...';
+                submitSpinner.classList.remove('d-none');
+                submitButton.disabled = true;
+
+                // The form will now submit normally to the Django backend
+                // No need to prevent default or use AJAX
+            });
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+
+                const bgClass = {
+                    'success': 'bg-success',
+                    'error': 'bg-danger',
+                    'warning': 'bg-warning',
+                    'info': 'bg-info'
+                }[type] || 'bg-info';
+
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `;
+
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 5000
+                });
+
+                toast.show();
+
+                // Remove toast from DOM after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', function () {
+                    toastElement.remove();
+                });
+            }
+
+            // Animation on scroll
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            animatedElements.forEach(element => {
+                observer.observe(element);
+            });
+
+            // Initialize form validation
+            validateForm();
+        });
+    </script>
+</body>
+
+</html>
