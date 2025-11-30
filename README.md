@@ -19,6 +19,9 @@ This is a web application built using Django that allows users to calculate elec
 <img width="1364" height="679" alt="customer-bill" src="https://github.com/user-attachments/assets/47e3a05c-7f45-41dd-a417-40c812541578" />
 
 
+<img width="1366" height="640" alt="meter reading" src="https://github.com/user-attachments/assets/65670455-e04a-47f6-acec-e08ce692912f" />
+
+
 ## 🔧 Setup & Installation  
 
 Follow these steps to set up and run the project locally:
@@ -113,5 +116,3 @@ project-root/
 📜 License & Disclaimer
 
 This project is intended for educational / demonstration purposes. Use it as you like — but if you deploy in a production environment, review the code carefully, manage secrets properly, and adjust configurations (e.g. DEBUG, allowed hosts, database, etc.) as needed.
-
-<img width="1366" height="640" alt="meter reading" src="https://github.com/user-attachments/assets/65670455-e04a-47f6-acec-e08ce692912f" />
