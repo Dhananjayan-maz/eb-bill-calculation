@@ -45,7 +45,8 @@ pip install -r requirements.txt
 cp .env.example .env
 # Then edit .env and add your own values (see Configuration section below)
 
-# 5. Run database migrations  
+# 5. Run database migrations
+python manage.py makemigrations  
 python manage.py migrate
 
 # 6. Start the development server  
