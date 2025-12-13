@@ -19,10 +19,7 @@ def index(request):
     return render(request, 'index.html')
 
 @customer_session_required 
-def customer_dashboard(request):   
-    # user_id=request.session.get('customer_id') 
-    # user = Customer.objects.get(id=user_id)
-    #print(user_id) 
+def customer_dashboard(request):    
     customer = request.customer
     return render(request, 'customer_dashboard.html', {'customer': customer})
 
